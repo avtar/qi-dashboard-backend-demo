@@ -1,10 +1,17 @@
 "use strict";
 
+var fs = require("fs");
 var request = require("request");
 var moment = require("moment");
 
 var token = process.env.GITHUB_PERSONAL_ACCESS_TOKEN;
 var GITHUB_API_HOST = "https://api.github.com";
+var config;
+
+fs.readFile("./config.json", "utf8", function (err, data) {
+    if (err) throw err;
+    config = JSON.parse(data);    
+});
 
 function makeGithubRequest (url, query, callback) {
     if (typeof query === "function") {
@@ -47,9 +54,11 @@ function makeGithubRequest (url, query, callback) {
 }
 
 function verifyGithubProjectOwner (owner, callback) {
-    var isAllowed = owner === "gpii" || owner === "fluid-project";
+    var isAllowed = config.githubOrganizations.filter(function (org) {
+        return org.toLowerCase() === owner.toLowerCase();    
+    })
     
-    if (!isAllowed) {
+    if (isAllowed.length === 0) {
         return callback(new Error("Unauthorized GitHub project owner provided."));
     }
 }
