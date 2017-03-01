@@ -10,7 +10,7 @@ var config;
 
 fs.readFile("./config.json", "utf8", function (err, data) {
     if (err) throw err;
-    config = JSON.parse(data);    
+    config = JSON.parse(data);
 });
 
 function makeGithubRequest (url, query, callback) {
@@ -34,9 +34,9 @@ function makeGithubRequest (url, query, callback) {
         }
     }, function (err, res, data) {
         if (err) return callback(err);
-         // The GitHub Statistics API documentation states that if the required data hasn't been 
+         // The GitHub Statistics API documentation states that if the required data hasn't been
          // been computed and cached then a 202 reponse is returned. Additional requests need to be
-         // made once their background jobs have completed, yielding a successful 200 response.         
+         // made once their background jobs have completed, yielding a successful 200 response.
         if (res.statusCode === 202) {
             query.__requestAttempts = requestAttempts - 1;
             if (query.__requestAttempts === 0) {
@@ -47,7 +47,7 @@ function makeGithubRequest (url, query, callback) {
                 makeGithubRequest(url, query, callback);
             }, 3000);
         }
-        
+
         console.log(res.headers["x-ratelimit-remaining"] + " GitHub API hourly requests remaining");
         callback(null, data);
     });
@@ -55,9 +55,9 @@ function makeGithubRequest (url, query, callback) {
 
 function verifyGithubProjectOwner (owner, callback) {
     var isAllowed = config.githubOrganizations.filter(function (org) {
-        return org.toLowerCase() === owner.toLowerCase();    
+        return org.toLowerCase() === owner.toLowerCase();
     })
-    
+
     if (isAllowed.length === 0) {
         return callback(new Error("Unauthorized GitHub project owner provided."));
     }
@@ -84,12 +84,12 @@ function getRepoContributors (owner, repo, callback) {
 
 function getContributors (owner, repo, callback) {
     if (verifyGithubProjectOwner(owner, callback)) return;
-    
+
     getRepoContributors(owner, repo, function (err, contributors) {
         if (err) return callback(err);
-        
+
         var contributorsPerWeek = {};
-        
+
         contributors.forEach(function (currentContributor) {
             currentContributor.weeks.forEach(function (currentWeek) {
                 contributorsPerWeek[currentWeek.w] = contributorsPerWeek[currentWeek.w] || 0;
@@ -157,18 +157,29 @@ function getCommits (owner, repo, callback) {
         contributors = _contributors;
         processResult();
     });
-    
+
     // This second endpoint and extra request is required so that the timeOfLastCommit value can
     // be determined. Only one page is required since the first object in the result represents
-    // the first commit. 
+    // the first commit.
     makeGithubRequest("/repos/" + owner + "/" + repo + "/commits", {
         per_page: 1
     }, function (_err, _commits) {
         err = _err;
         lastCommit = _commits[0];
         processResult();
-    });    
+    });
 };
+
+// TODO: Remove after P4A March 2017 F2F. Only used for https://github.com/p4a-test/nuts-and-bolts
+// demo repository.
+function getCIResults(owner, repo, callback) {
+    // Fake data is only returned for the p4a-test GitHub project.
+    if (!owner.toLowerCase().match(/p4a-test/)) return callback(new Error("CI results not available for requested project."));
+
+    var output = fs.readFileSync("./nuts-and-bolts-ci.json", "utf8");
+
+    callback(null, JSON.parse(output));
+}
 
 function httpHandler (fn) {
    return function (req, res) {
@@ -182,8 +193,8 @@ function httpHandler (fn) {
            } else if (req.query.callback) {
                return res.jsonp(data);
            } else {
-               return res.json(data); 
-           }                      
+               return res.json(data);
+           }
        });
    };
 };
@@ -191,3 +202,6 @@ function httpHandler (fn) {
 exports.getContributors = getContributors;
 exports.getCommits = getCommits;
 exports.httpHandler = httpHandler;
+// TODO: Remove after P4A March 2017 F2F. Only used for https://github.com/p4a-test/nuts-and-bolts
+// demo repository.
+exports.getCIResults = getCIResults;
