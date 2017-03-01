@@ -54,6 +54,9 @@ Vagrant.configure(2) do |config|
   # The ansible-galaxy command assumes a git client is available in the VM, the
   # inclusivedesign/centos7 Vagrant box includes one.
   config.vm.provision "shell", inline: <<-SHELL
+    sudo mkdir -p /var/tmp/#{app_name}/node_modules #{app_directory}/node_modules
+    sudo chown vagrant:vagrant -R /var/tmp/#{app_name}/node_modules #{app_directory}/node_modules
+    sudo mount -o bind /var/tmp/#{app_name}/node_modules #{app_directory}/node_modules
     sudo ansible-galaxy install -fr #{app_directory}/provisioning/requirements.yml
     sudo PYTHONUNBUFFERED=1 ansible-playbook #{app_directory}/provisioning/vagrant.yml --tags="install,configure,deploy"
   SHELL
