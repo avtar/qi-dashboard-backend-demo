@@ -1,5 +1,5 @@
 ---
-nodejs_version: 4.3.1
+nodejs_branch: lts
 
 nodejs_app_install_dir: /home/vagrant/sync
 
