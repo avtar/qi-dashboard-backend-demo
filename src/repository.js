@@ -6,12 +6,15 @@ var moment = require("moment");
 
 var token = process.env.GITHUB_PERSONAL_ACCESS_TOKEN;
 var GITHUB_API_HOST = "https://api.github.com";
-var config;
 
-fs.readFile("./config.json", "utf8", function (err, data) {
-    if (err) throw err;
-    config = JSON.parse(data);
-});
+// A config file was being used to whitelist GitHub accounts. Whitelisting is no longer required
+// so leaving this commented out for now.
+// var config;
+
+// fs.readFile("./config.json", "utf8", function (err, data) {
+//     if (err) throw err;
+//     config = JSON.parse(data);
+// });
 
 function makeGithubRequest (url, query, callback) {
     if (typeof query === "function") {
@@ -53,16 +56,6 @@ function makeGithubRequest (url, query, callback) {
     });
 }
 
-function verifyGithubProjectOwner (owner, callback) {
-    var isAllowed = config.githubOrganizations.filter(function (org) {
-        return org.toLowerCase() === owner.toLowerCase();
-    })
-
-    if (isAllowed.length === 0) {
-        return callback(new Error("Unauthorized GitHub project owner provided."));
-    }
-}
-
 function processEvents (activity) {
     return Object.keys(activity).sort(function(firstDate, secondDate) {
         return firstDate < secondDate ? 1 : -1;
@@ -83,8 +76,6 @@ function getRepoContributors (owner, repo, callback) {
 }
 
 function getContributors (owner, repo, callback) {
-    if (verifyGithubProjectOwner(owner, callback)) return;
-
     getRepoContributors(owner, repo, function (err, contributors) {
         if (err) return callback(err);
 
@@ -111,8 +102,6 @@ function getContributors (owner, repo, callback) {
 }
 
 function getCommits (owner, repo, callback) {
-    if (verifyGithubProjectOwner(owner, callback)) return;
-
     var numOfInvocations = 0;
     var contributors = null;
     var lastCommit = null;
