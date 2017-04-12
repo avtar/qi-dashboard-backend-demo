@@ -36,14 +36,14 @@ function makeGithubRequest (url, query, callback) {
             "User-agent": "Node.js"
         }
     }, function (err, res, data) {
-        if (err) return callback(err);
+        if (err) return callback(err, null, res);
          // The GitHub Statistics API documentation states that if the required data hasn't been
          // been computed and cached then a 202 reponse is returned. Additional requests need to be
          // made once their background jobs have completed, yielding a successful 200 response.
         if (res.statusCode === 202) {
             query.__requestAttempts = requestAttempts - 1;
             if (query.__requestAttempts === 0) {
-                return callback(new Error("Unable to retrieve result from " + GITHUB_API_HOST));
+                return callback(new Error("Unable to retrieve result from " + GITHUB_API_HOST), null, res);
             }
             console.log("Received a 202 response, retrying request...");
             return setTimeout(function () {
@@ -52,7 +52,7 @@ function makeGithubRequest (url, query, callback) {
         }
 
         console.log(res.headers["x-ratelimit-remaining"] + " GitHub API hourly requests remaining");
-        callback(null, data);
+        callback(null, data, res);
     });
 }
 
@@ -107,11 +107,11 @@ function getCommits (owner, repo, callback) {
     var lastCommit = null;
     var err = null;
 
-    function processResult () {
+    function processResult (_res) {
         if (++numOfInvocations !== 2) return;
-        if (err) return callback(err);
-        if (!contributors.length) return callback(new Error("No contributors found."));
-        if (!lastCommit) return callback(new Error("Could not get the last commit."));
+        if (err) return callback(err, null, _res);
+        if (!contributors.length) return callback(new Error("No contributors found."), null, _res);
+        if (!lastCommit) return callback(new Error("Could not get the last commit."), null, _res);
 
         // The Statistics endpoint returns the most active contributor object last.
         var mostFrequentCommitterData = contributors[contributors.length - 1];
@@ -138,13 +138,13 @@ function getCommits (owner, repo, callback) {
             events: processEvents(commitsPerWeek)
         };
 
-        callback(null, output);
+        callback(null, output, _res);
     }
 
-    getRepoContributors(owner, repo, function (_err, _contributors) {
+    getRepoContributors(owner, repo, function (_err, _contributors, _res) {
         err = _err;
         contributors = _contributors;
-        processResult();
+        processResult(_res);
     });
 
     // This second endpoint and extra request is required so that the timeOfLastCommit value can
@@ -152,22 +152,36 @@ function getCommits (owner, repo, callback) {
     // the first commit.
     makeGithubRequest("/repos/" + owner + "/" + repo + "/commits", {
         per_page: 1
-    }, function (_err, _commits) {
+    }, function (_err, _commits, _res) {
         err = _err;
         lastCommit = _commits[0];
-        processResult();
+        processResult(_res);
     });
 };
 
-// TODO: Remove after P4A March 2017 F2F. Only used for https://github.com/p4a-test/nuts-and-bolts
-// demo repository.
 function getCIResults(owner, repo, callback) {
-    // Fake data is only returned for the p4a-test GitHub project.
-    if (!owner.toLowerCase().match(/p4a-test/)) return callback(new Error("CI results not available for requested project."));
+    // Fake data is only returned for the p4a-test/nuts-and-bolts and fluid-project/infusion GitHub projects.
+    var whiteList = [
+        "p4a-test/nuts-and-bolts",
+        "fluid-project/infusion"
+    ];
+    var fullName = [owner, repo].join("/").toLowerCase();
+
+    // Returning an unused HTTP status code for this mock result.
+    if (whiteList.indexOf(fullName) === -1) return callback(new Error("CI results not found."), null, {
+        statusCode: 9000
+    });
 
     var output = fs.readFileSync("./nuts-and-bolts-ci.json", "utf8");
 
     callback(null, JSON.parse(output));
+}
+
+function generateErrorMessage(message) {
+    return {
+        isError: true,
+        message: message
+    }
 }
 
 function httpHandler (fn) {
@@ -175,14 +189,23 @@ function httpHandler (fn) {
        var owner = req.params.owner;
        var repo = req.params.repo;
 
-       fn(owner, repo, function (err, data) {
+       fn(owner, repo, function (err, data, githubResponse) {
            if (err) {
                console.log(err);
-               return res.status(400).send(err.toString());
-           } else if (req.query.callback) {
-               return res.jsonp(data);
+               var githubStatusCode = githubResponse && githubResponse.statusCode;
+               var statusCode = githubStatusCode || 400;
+               if (statusCode === 404) {
+                   err.message = "Data not found.";
+               } else if (statusCode === 9000) {
+                   err.message = "CI data is not available for this project."
+                   // Reporting a real HTTP status code to clients instead of the mock one.
+                   statusCode = 404;
+               } else if (githubStatusCode >= 500) {
+                   err.message = "Upstream API is not available."
+               }
+               return res.status(statusCode).json(generateErrorMessage(err.message));
            } else {
-               return res.json(data);
+               return req.query.callback ? res.jsonp(data) : res.json(data);
            }
        });
    };
@@ -190,7 +213,5 @@ function httpHandler (fn) {
 
 exports.getContributors = getContributors;
 exports.getCommits = getCommits;
-exports.httpHandler = httpHandler;
-// TODO: Remove after P4A March 2017 F2F. Only used for https://github.com/p4a-test/nuts-and-bolts
-// demo repository.
 exports.getCIResults = getCIResults;
+exports.httpHandler = httpHandler;
