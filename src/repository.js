@@ -188,10 +188,9 @@ function httpHandler (fn) {
    return function (req, res) {
        var owner = req.params.owner;
        var repo = req.params.repo;
+       var resType = req.query.callback ? "jsonp" : "json";
 
        fn(owner, repo, function (err, data, githubResponse) {
-           var resType = req.query.callback ? res.jsonp : res.json;
-
            if (err) {
                console.log(err);
                var githubStatusCode = githubResponse && githubResponse.statusCode;
@@ -206,9 +205,9 @@ function httpHandler (fn) {
                } else if (githubStatusCode >= 500) {
                    err.message = "Upstream API is not available."
                }
-               return res.status(statusCode).resType(generateErrorMessage(err.message));
+               return res.status(statusCode)[resType](generateErrorMessage(err.message));
            } else {
-               return res.resType(data);
+               return res[resType](data);
            }
        });
    };
