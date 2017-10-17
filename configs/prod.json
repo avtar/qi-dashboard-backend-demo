@@ -1,0 +1,7 @@
+{
+    "type": "prodConfig",
+    "options": {
+        "gradeNames": ["gpii.qi.api.harness"]
+    },
+    "require": ["%qi-api/src/harness.js"]
+}

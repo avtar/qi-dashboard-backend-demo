@@ -1,4 +1,7 @@
-.tern-port
+.idea
+.vscode
 .vagrant/
+jsconfig.json
+yarn-error.log
+npm-debug.log
 node_modules/
-provisioning/secrets.yml
