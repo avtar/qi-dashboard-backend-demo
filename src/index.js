@@ -2,6 +2,7 @@
 var fluid = require("infusion");
 var gpii  = fluid.registerNamespace("gpii");
 
+require("./common");
 require("./commits");
 require("./ci")
 

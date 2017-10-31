@@ -5,11 +5,11 @@ var gpii = fluid.registerNamespace("gpii");
 fluid.registerNamespace("gpii.qi.api.commits");
 
 gpii.qi.api.commits.results = function (that) {
-    that.sendResponse(200, that.options.request.params);
+    that.events.onReturnResult.fire(200, "commits result");
 }
 
 fluid.defaults("gpii.qi.api.commits.handler", {
-    gradeNames: ["gpii.express.handler"],
+    gradeNames: ["gpii.qi.api.common", "gpii.express.middleware.requestAware"],
     invokers: {
         handleRequest: {
             funcName: "gpii.qi.api.commits.results",
