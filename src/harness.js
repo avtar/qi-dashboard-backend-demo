@@ -13,7 +13,7 @@ fluid.defaults("gpii.qi.api.harness", {
     port: 3000,
     ci: {
         payload: "./payloads/ci.json",
-        validProjects: ["p4a-test/nuts-and-bolts", "fluid-project/infusion"]
+        authorizedProjects: ["p4a-test/nuts-and-bolts", "fluid-project/infusion"]
     },
     github: {
         apiHost: "https://api.github.com",

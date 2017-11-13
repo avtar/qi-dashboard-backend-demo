@@ -39,9 +39,9 @@ gpii.qi.api.ci.isUnauthorizedProject = function (that) {
     var account = that.options.request.params.repoAccount;
     var repo = that.options.request.params.repoName;
     var string = [account, repo].join("/").toLowerCase();
-    var validProjects = that.options.ci.validProjects;
+    var authorizedProjects = that.options.ci.authorizedProjects;
 
-    return (validProjects.indexOf(string) === -1) ? true : false;
+    return (authorizedProjects.indexOf(string) === -1) ? true : false;
 }
 
 gpii.qi.api.ci.loadPayload = function (file) {
