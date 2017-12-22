@@ -11,8 +11,8 @@ fluid.defaults("gpii.qi.api.common", {
         ghRequestAttempts: null
     },
     events: {
-        onLogError: null,
-        onReturnResult: null
+        onError: null,
+        onResult: null
     },
     listeners: {
         "onCreate.logRequest": {
@@ -20,11 +20,11 @@ fluid.defaults("gpii.qi.api.common", {
             priority: "first",
             args: "{that}.options.request.originalUrl"
         },
-        "onLogError": {
+        "onError.logError": {
             funcName: "gpii.qi.api.common.logError",
             args: "{arguments}.0"
         },
-        "onReturnResult": {
+        "onResult.returnResult": {
             funcName: "gpii.qi.api.common.returnResult",
             args: ["{that}", "{arguments}.0", "{arguments}.1"]
         }

@@ -28,11 +28,11 @@ gpii.qi.api.ci.results = function (that) {
     if (unauthorized || !payload) {
         var error = that.options.responses.ci.payloadUnavailable;
 
-        that.events.onLogError.fire(error.message);
-        return that.events.onReturnResult.fire(error.statusCode, error);
+        that.events.onError.fire(error.message);
+        return that.events.onResult.fire(error.statusCode, error);
     }
 
-    that.events.onReturnResult.fire(that.options.responses.ci.success.statusCode, payload);    
+    that.events.onResult.fire(that.options.responses.ci.success.statusCode, payload);
 }
 
 gpii.qi.api.ci.isUnauthorizedProject = function (that) {
