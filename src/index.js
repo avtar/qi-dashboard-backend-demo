@@ -4,6 +4,7 @@ var gpii  = fluid.registerNamespace("gpii");
 
 require("./common");
 require("./commits");
+require("./contributors");
 require("./ci")
 
 fluid.defaults("gpii.qi.api", {
@@ -18,6 +19,9 @@ fluid.defaults("gpii.qi.api", {
         },
         commits: {
             type: "gpii.qi.api.commits"
+        },
+        contributors: {
+            type: "gpii.qi.api.contributors"
         },
         ci: {
             type: "gpii.qi.api.ci"
