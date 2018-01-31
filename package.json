@@ -9,6 +9,8 @@
         "eslint": "^4.8.0",
         "gpii-express": "^1.0.11",
         "gpii-launcher": "^1.0.0-dev.20170725T121231Z.ac68c76",
-        "infusion": "^3.0.0-dev.20170127T130413Z.103de6e"
+        "infusion": "^3.0.0-dev.20170127T130413Z.103de6e",
+        "moment": "^2.20.1",
+        "request": "^2.83.0"
     }
 }

@@ -7,7 +7,7 @@ fluid.registerNamespace("gpii.qi.api.ci");
 
 fluid.defaults("gpii.qi.api.ci", {
     gradeNames: ["gpii.express.middleware.requestAware"],
-    path: "/:repoAccount/:repoName/ci",
+    path: "/:repoOwner/:repoName/ci",
     handlerGrades: ["gpii.qi.api.ci.handler"],
 });
 
@@ -15,17 +15,24 @@ fluid.defaults("gpii.qi.api.ci.handler", {
     gradeNames: ["gpii.qi.api.common", "gpii.express.middleware.requestAware"],
     invokers: {
         handleRequest: {
-            funcName: "gpii.qi.api.ci.results",
+            funcName: "gpii.qi.api.ci.handleRequest",
             args: ["{that}"]
         }
     }
 });
 
-gpii.qi.api.ci.results = function (that) {
+gpii.qi.api.ci.handleRequest = function (that) {
     var unauthorized = gpii.qi.api.ci.isUnauthorizedProject(that);
     var payload = gpii.qi.api.ci.loadPayload(that.options.ci.payload);
 
-    if (unauthorized || !payload) {
+    if (!payload) {
+        var error = that.options.responses.ci.inaccessibleFile;
+
+        that.events.onError.fire(error.message);
+        return that.events.onResult.fire(error.statusCode, error);
+    }
+
+    if (unauthorized) {
         var error = that.options.responses.ci.payloadUnavailable;
 
         that.events.onError.fire(error.message);
@@ -36,12 +43,12 @@ gpii.qi.api.ci.results = function (that) {
 }
 
 gpii.qi.api.ci.isUnauthorizedProject = function (that) {
-    var account = that.options.request.params.repoAccount;
+    var owner = that.options.request.params.repoOwner;
     var repo = that.options.request.params.repoName;
-    var string = [account, repo].join("/").toLowerCase();
+    var ownerSlashRepo = gpii.qi.api.common.concatWithSlash(owner, repo);
     var authorizedProjects = that.options.ci.authorizedProjects;
 
-    return (authorizedProjects.indexOf(string) === -1) ? true : false;
+    return (authorizedProjects.indexOf(ownerSlashRepo) === -1) ? true : false;
 }
 
 gpii.qi.api.ci.loadPayload = function (file) {
@@ -50,7 +57,6 @@ gpii.qi.api.ci.loadPayload = function (file) {
     try {
         payload = JSON.parse(fs.readFileSync(file, "utf8"));
     } catch (e) {
-        gpii.qi.api.common.logError("Could not read payload file.");
     }
 
     return payload;    
