@@ -6,31 +6,26 @@ var moment = require("moment");
 fluid.registerNamespace("gpii.qi.api.commits");
 
 fluid.defaults("gpii.qi.api.commits", {
-    gradeNames: ["gpii.express.middleware.requestAware"],
+    gradeNames: ["gpii.qi.api.common", "gpii.express.middleware"],
     path: "/:repoOwner/:repoName/commits",
-    handlerGrades: ["gpii.qi.api.commits.handler"]
-});
-
-fluid.defaults("gpii.qi.api.commits.handler", {
-    gradeNames: ["gpii.qi.api.common", "gpii.express.middleware.requestAware"],
     invokers: {
-        handleRequest: {
+        middleware: {
             funcName: "gpii.qi.api.commits.handleRequest",
-            args: ["{that}"]
+            args: ["{that}", "{arguments}.0", "{arguments}.1"] // request, response
         }
     }
 });
 
-gpii.qi.api.commits.handleRequest = function (that) {
-    var owner = that.options.request.params.repoOwner;
-    var repo = that.options.request.params.repoName;
+gpii.qi.api.commits.handleRequest = function (that, request, response) {
+    var owner = request.params.repoOwner;
+    var repo = request.params.repoName;
 
     gpii.qi.api.commits.getCommits(that, owner, repo).then(function (result) {
         var statusCode = that.options.responses.github.success.statusCode;
-        return that.events.onResult.fire(statusCode, result);
+        return that.events.onResult.fire(statusCode, result, request, response);
     }).catch(function (error) {
         that.events.onError.fire(error.message);
-        return that.events.onResult.fire(error.statusCode, error);
+        return that.events.onResult.fire(error.statusCode, error, request, response);
     });
 }
 

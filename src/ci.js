@@ -6,47 +6,43 @@ var gpii = fluid.registerNamespace("gpii");
 fluid.registerNamespace("gpii.qi.api.ci");
 
 fluid.defaults("gpii.qi.api.ci", {
-    gradeNames: ["gpii.express.middleware.requestAware"],
+    gradeNames: ["gpii.qi.api.common", "gpii.express.middleware"],
     path: "/:repoOwner/:repoName/ci",
-    handlerGrades: ["gpii.qi.api.ci.handler"],
-});
-
-fluid.defaults("gpii.qi.api.ci.handler", {
-    gradeNames: ["gpii.qi.api.common", "gpii.express.middleware.requestAware"],
     invokers: {
-        handleRequest: {
+        middleware: {
             funcName: "gpii.qi.api.ci.handleRequest",
-            args: ["{that}"]
+            args: ["{that}", "{arguments}.0", "{arguments}.1"] // request, response
         }
     }
 });
 
-gpii.qi.api.ci.handleRequest = function (that) {
-    var unauthorized = gpii.qi.api.ci.isUnauthorizedProject(that);
+gpii.qi.api.ci.handleRequest = function (that, request, response) {
+    var owner = request.params.repoOwner;
+    var repo = request.params.repoName;
+    var authorizedProjects = that.options.ci.authorizedProjects;
     var payload = gpii.qi.api.ci.loadPayload(that.options.ci.payload);
 
     if (!payload) {
         var error = that.options.responses.ci.inaccessibleFile;
 
         that.events.onError.fire(error.message);
-        return that.events.onResult.fire(error.statusCode, error);
+        return that.events.onResult.fire(error.statusCode, error, request, response);
     }
+
+    var unauthorized = gpii.qi.api.ci.isUnauthorizedProject(owner, repo, authorizedProjects);
 
     if (unauthorized) {
         var error = that.options.responses.ci.payloadUnavailable;
 
         that.events.onError.fire(error.message);
-        return that.events.onResult.fire(error.statusCode, error);
+        return that.events.onResult.fire(error.statusCode, error, request, response);
     }
 
-    that.events.onResult.fire(that.options.responses.ci.success.statusCode, payload);
+    that.events.onResult.fire(that.options.responses.ci.success.statusCode, payload, request, response);
 }
 
-gpii.qi.api.ci.isUnauthorizedProject = function (that) {
-    var owner = that.options.request.params.repoOwner;
-    var repo = that.options.request.params.repoName;
+gpii.qi.api.ci.isUnauthorizedProject = function (owner, repo, authorizedProjects) {
     var ownerSlashRepo = gpii.qi.api.common.concatWithSlash(owner, repo);
-    var authorizedProjects = that.options.ci.authorizedProjects;
 
     return (authorizedProjects.indexOf(ownerSlashRepo) === -1) ? true : false;
 }
