@@ -28,11 +28,6 @@ fluid.defaults("gpii.qi.api.common", {
         onResult: null
     },
     listeners: {
-        "onCreate.logRequest": {
-            funcName: "gpii.qi.api.common.logRequest",
-            priority: "first",
-            args: "{that}.options.request.originalUrl"
-        },
         "onError.logError": {
             funcName: "gpii.qi.api.common.logError",
             args: "{arguments}.0"
@@ -91,10 +86,6 @@ fluid.defaults("gpii.qi.api.common", {
 
 gpii.qi.api.common.logError = function (errorMessage) {
     fluid.log("Error: " + errorMessage);
-};
-
-gpii.qi.api.common.logRequest = function (url) {
-    fluid.log("Request: " + url);
 };
 
 gpii.qi.api.common.returnResult = function (statusCode, result, request, response) {
