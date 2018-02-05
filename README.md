@@ -30,7 +30,7 @@ sudo docker run \
 -p 3000:3000 \
 --name="qi-dashboard-backend" \
 -e QI_DASHBOARD_BACKEND_TCP_PORT=3000 \
--e GITHUB_PERSONAL_ACCESS_TOKEN=<your token here> \ 
+-e GITHUB_ACCESS_TOKEN=<your token here> \ 
 avtar/qi-dashboard-backend
 ```
 
