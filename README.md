@@ -6,15 +6,11 @@ This repository contains a prototype of the backend service meant to be used to 
 
 You will need to:
 
-* Meet some basic [Vagrant requirements](https://github.com/GPII/qi-development-environments/#requirements)
+* Have [Docker installed](https://www.docker.com/community-edition#/download)
 
-* [Generate a GitHub personal access token](https://github.com/settings/tokens/new) and provide it in your ``provisioning/secrets.yml`` file. No scopes need to be selected on the token generation page.
+* [Generate a GitHub personal access token](https://github.com/settings/tokens/new) -- no scopes need to be selected on the token generation page
 
-## Use a container
-
-The same VM mentioned above can be used to build a Docker image and run containers.
-
-### Build an image
+### Build a Docker image
 
     sudo docker build -t avtar/qi-dashboard-backend .
 
