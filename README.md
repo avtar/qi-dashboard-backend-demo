@@ -1,6 +1,6 @@
 # QI Dashboard Backend Demo
 
-This repository contains a prototype of the backend service meant to be used to demo the QI Dashboard. 
+This repository contains a prototype of the backend service meant to be used to demo the QI Dashboard.
 
 ## Requirements
 
@@ -18,9 +18,9 @@ You will need to:
 
 ```
 sudo docker run \
--d \ 
+-d \
 -p 3000:3000 \
 --name="qi-dashboard-backend" \
--e GITHUB_ACCESS_TOKEN=<your token here> \ 
+-e GITHUB_PERSONAL_ACCESS_TOKEN=<your token here> \
 avtar/qi-dashboard-backend
 ```

@@ -16,7 +16,7 @@ fluid.defaults("gpii.qi.api.common", {
         payload: "./payloads/ci.json"
     },
     github: {
-        accessToken: "{gpii.launcher.resolver}.env.GITHUB_ACCESS_TOKEN",
+        accessToken: "{gpii.launcher.resolver}.env.GITHUB_PERSONAL_ACCESS_TOKEN",
         apiHost: "api.github.com",
         apiVersion: "v3",
         retryAttemptsLimit: 10,
