@@ -10,19 +10,6 @@ fluid.registerNamespace("gpii.qi.api.common");
 
 fluid.defaults("gpii.qi.api.common", {
     gradeNames: ["fluid.component"],
-    timeout: 10000,
-    ci: {
-        authorizedProjects: ["p4a-test/nuts-and-bolts", "fluid-project/infusion"],
-        payload: "./payloads/ci.json"
-    },
-    github: {
-        accessToken: "{gpii.launcher.resolver}.env.GITHUB_PERSONAL_ACCESS_TOKEN",
-        apiHost: "api.github.com",
-        apiVersion: "v3",
-        retryAttemptsLimit: 10,
-        retryAttemptsTimeout: 1000,
-        userAgent: "Node.js"
-    },
     events: {
         onError: null,
         onResult: null
@@ -37,12 +24,6 @@ fluid.defaults("gpii.qi.api.common", {
             args: ["{arguments}.0", "{arguments}.1", "{arguments}.2", "{arguments}.3"] // statusCode, result, request, response
         }
     },
-    distributeOptions: [
-        {
-            source: "{that}.options.timeout",
-            target: "{that gpii.express.middleware}.options.timeout"
-        }
-    ],
     responses: {
         github: {
             success: {

@@ -11,29 +11,31 @@ fluid.registerNamespace("gpii.qi.api.harness");
 fluid.defaults("gpii.qi.api.harness", {
     gradeNames: ["fluid.component"],
     port: 3000,
+    timeout: 10000,
     ci: {
-        payload: "./payloads/ci.json",
-        authorizedProjects: ["p4a-test/nuts-and-bolts", "fluid-project/infusion"]
+        authorizedProjects: ["p4a-test/nuts-and-bolts", "fluid-project/infusion"],
+        payload: "./payloads/ci.json"
     },
     github: {
-        apiHost: "https://api.github.com",
-        requestAttempts: 5,
-        requestTimeout: 3000,
-        requestUserAgent: "Node.js",
-        requestGitHubStatusCode: 202
+        accessToken: "{gpii.launcher.resolver}.env.GITHUB_PERSONAL_ACCESS_TOKEN",
+        apiHost: "api.github.com",
+        apiVersion: "v3",
+        retryAttemptsLimit: 10,
+        retryAttemptsTimeout: 1000,
+        userAgent: "Node.js"
     },
     distributeOptions: [
         {
-            record: 5000,
-            target: "{that gpii.express.handler}.options.timeout"
+            record: "{that}.options.timeout",
+            target: "{that gpii.express.middleware}.options.timeout"
         },
         {
             source: "{that}.options.github",
-            target: "{that gpii.express.handler}.options.github"
+            target: "{that gpii.express.middleware}.options.github"
         },
         {
             source: "{that}.options.ci",
-            target: "{that gpii.qi.api.ci.handler}.options.ci"
+            target: "{that gpii.express.middleware}.options.ci"
         }
     ],
     components: {
